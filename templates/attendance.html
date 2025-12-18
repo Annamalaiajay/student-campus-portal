@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Attendance System</h2>
+
+{% if session.role == 'student' %}
+<div class="card">
+    <h3>Mark Attendance</h3>
+    <form method="POST" action="{{ url_for('mark_attendance') }}">
+        <div class="form-group">
+            <select name="verification_type" required>
+                <option value="biometric">📱 Biometric</option>
+                <option value="gps">📍 GPS Location</option>
+            </select>
+        </div>
+        <button type="submit" class="btn">Mark Attendance</button>
+    </form>
+</div>
+{% endif %}
+
+<div class="card">
+    <h3>Records</h3>
+    <table class="table">
+        <tr>
+            {% if session.role == 'admin' %}<th>Student</th>{% endif %}
+            <th>Date</th>
+            <th>Time</th>
+            <th>Type</th>
+        </tr>
+        {% for record in records %}
+        <tr>
+            {% if session.role == 'admin' %}<td>{{ record[5] }}</td>{% endif %}
+            <td>{{ record[2] }}</td>
+            <td>{{ record[3] }}</td>
+            <td>{{ record[4] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

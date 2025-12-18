@@ -1,3 +1,5 @@
+console.log("APP JS LOADED");
+
 const { useState, useEffect } = React;
 
 function App() {
@@ -34,6 +36,12 @@ function App() {
       )}
       {page === "attendance" && (
         <HostelAttendance user={user} setPage={setPage} />
+      )}
+      {page === "complaint" && (
+        <Complaint user={user} setPage={setPage} />
+      )}
+      {page === "adminComplaints" && (
+        <AdminComplaints setPage={setPage} />
       )}
     </>
   );
@@ -100,10 +108,22 @@ function Dashboard({ user, setPage, logout }) {
           📍 Hostel Attendance
         </div>
 
-        <div className="card">📝 Complaint Box</div>
+        <div className="card" onClick={() => setPage("complaint")}>
+          📝 Complaint Box
+        </div>
+
         <div className="card">🤝 STUDENT-Connection</div>
         <div className="card">📅 Online College Events</div>
       </div>
+
+      {user.email === "admin@sathyabama.com" && (
+        <button
+          className="logout-btn"
+          onClick={() => setPage("adminComplaints")}
+        >
+          View All Complaints (Admin)
+        </button>
+      )}
 
       <button className="logout-btn" onClick={logout}>
         Logout
@@ -116,66 +136,139 @@ function Dashboard({ user, setPage, logout }) {
 function HostelAttendance({ user, setPage }) {
   const [marked, setMarked] = useState(false);
   const [records, setRecords] = useState([]);
-
   const today = new Date().toLocaleDateString();
 
   useEffect(() => {
     const all = JSON.parse(localStorage.getItem("attendance")) || [];
     setRecords(all);
-
-    const already = all.find(
-      r => r.email === user.email && r.date === today
-    );
-    if (already) setMarked(true);
+    if (all.find(r => r.email === user.email && r.date === today)) {
+      setMarked(true);
+    }
   }, []);
 
   function markAttendance() {
     const all = JSON.parse(localStorage.getItem("attendance")) || [];
-
-    const newRecord = {
+    all.push({
       name: user.name,
       email: user.email,
       date: today,
       time: new Date().toLocaleTimeString(),
       status: "Present"
-    };
-
-    all.push(newRecord);
+    });
     localStorage.setItem("attendance", JSON.stringify(all));
-
-    setRecords(all);
     setMarked(true);
-    alert("Attendance marked successfully");
+    setRecords(all);
   }
 
   return (
     <div className="glass-box" style={{ width: "600px" }}>
       <div className="title">Hostel Attendance</div>
-      <div className="subtitle">{today}</div>
 
       {!marked ? (
         <button onClick={markAttendance}>Mark Attendance</button>
       ) : (
-        <p style={{ textAlign: "center", color: "#cce7ff" }}>
-          Attendance already marked for today
-        </p>
+        <p style={{ textAlign: "center" }}>Attendance already marked</p>
       )}
-
-      <h3 style={{ marginTop: "20px" }}>Attendance History</h3>
 
       <ul>
         {records
           .filter(r => r.email === user.email)
           .map((r, i) => (
-            <li key={i}>
-              {r.date} – {r.time} – {r.status}
-            </li>
+            <li key={i}>{r.date} - {r.status}</li>
           ))}
       </ul>
 
-      <button onClick={() => setPage("dashboard")}>
-        Back to Dashboard
-      </button>
+      <button onClick={() => setPage("dashboard")}>Back</button>
+    </div>
+  );
+}
+
+/* ---------- COMPLAINT MODULE ---------- */
+function Complaint({ user, setPage }) {
+  const [category, setCategory] = useState("");
+  const [text, setText] = useState("");
+  const [list, setList] = useState([]);
+
+  useEffect(() => {
+    const all = JSON.parse(localStorage.getItem("complaints")) || [];
+    setList(all.filter(c => c.email === user.email));
+  }, []);
+
+  function submitComplaint() {
+    const all = JSON.parse(localStorage.getItem("complaints")) || [];
+    all.push({
+      name: user.name,
+      email: user.email,
+      category,
+      text,
+      date: new Date().toLocaleString(),
+      status: "Pending"
+    });
+    localStorage.setItem("complaints", JSON.stringify(all));
+    setCategory("");
+    setText("");
+    setList(all.filter(c => c.email === user.email));
+    alert("Complaint submitted");
+  }
+
+  return (
+    <div className="glass-box" style={{ width: "600px" }}>
+      <div className="title">Complaint Box</div>
+
+      <select value={category} onChange={e => setCategory(e.target.value)}>
+        <option value="">Select Category</option>
+        <option>Hostel</option>
+        <option>Mess</option>
+        <option>Maintenance</option>
+        <option>Security</option>
+      </select>
+
+      <textarea
+        style={{ width: "100%", height: "80px", marginTop: "10px" }}
+        placeholder="Write your complaint..."
+        value={text}
+        onChange={e => setText(e.target.value)}
+      />
+
+      <button onClick={submitComplaint}>Submit Complaint</button>
+
+      <h3>Your Complaints</h3>
+      <ul>
+        {list.map((c, i) => (
+          <li key={i}>
+            [{c.category}] {c.text} – <b>{c.status}</b>
+          </li>
+        ))}
+      </ul>
+
+      <button onClick={() => setPage("dashboard")}>Back</button>
+    </div>
+  );
+}
+
+/* ---------- ADMIN VIEW ---------- */
+function AdminComplaints({ setPage }) {
+  const [all, setAll] = useState([]);
+
+  useEffect(() => {
+    setAll(JSON.parse(localStorage.getItem("complaints")) || []);
+  }, []);
+
+  return (
+    <div className="glass-box" style={{ width: "700px" }}>
+      <div className="title">All Complaints (Admin)</div>
+
+      <ul>
+        {all.map((c, i) => (
+          <li key={i}>
+            <b>{c.name}</b> ({c.email})<br />
+            [{c.category}] {c.text}<br />
+            Status: {c.status}
+          </li>
+        ))}
+      </ul>
+
+      <button onClick={() => setPage("dashboard")}>Back</button>
     </div>
   );
 }
