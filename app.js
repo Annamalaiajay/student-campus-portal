@@ -5,6 +5,15 @@ function App() {
   const [user, setUser] = useState(null);
 
   function login(email, password) {
+    // Admin login
+    if (email === "admin@campus.edu" && password === "admin123") {
+      const adminUser = { name: "Admin", email: email, role: "admin" };
+      setUser(adminUser);
+      setPage("adminDashboard");
+      return;
+    }
+    
+    // Student login
     const data = JSON.parse(localStorage.getItem(email) || "null");
     if (data && data.password === password) {
       setUser(data);
@@ -43,15 +52,61 @@ function App() {
 function Login({ login, setPage }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loginAs, setLoginAs] = useState("student");
+
+  function handleLogin() {
+    if (loginAs === "admin") {
+      // Admin login with preset credentials
+      if (email === "admin@campus.edu" && password === "admin123") {
+        login(email, password);
+      } else {
+        alert("Admin credentials: admin@campus.edu / admin123");
+      }
+    } else {
+      login(email, password);
+    }
+  }
 
   return (
-    <div className="glass-box">
-      <div className="title">Smart Campus Management</div>
-      <div className="subtitle">Student Portal Login</div>
-      <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
-      <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
-      <button onClick={() => login(email, password)}>Login</button>
-      <div className="link" onClick={() => setPage("register")}>New user? Register</div>
+    <div className="login-box">
+      <div className="title">🎓 Smart Campus</div>
+      <div className="subtitle">Management System</div>
+      
+      <div className="role-selector">
+        <div 
+          className={`role-option ${loginAs === "student" ? "active" : ""}`}
+          onClick={() => setLoginAs("student")}
+        >
+          👨‍🎓 Student
+        </div>
+        <div 
+          className={`role-option ${loginAs === "admin" ? "active" : ""}`}
+          onClick={() => setLoginAs("admin")}
+        >
+          👨‍💼 Admin
+        </div>
+      </div>
+
+      <input 
+        placeholder={loginAs === "admin" ? "Admin Email" : "Student Email"} 
+        value={email} 
+        onChange={e => setEmail(e.target.value)} 
+      />
+      <input 
+        type="password" 
+        placeholder="Password" 
+        value={password} 
+        onChange={e => setPassword(e.target.value)} 
+      />
+      
+      {loginAs === "admin" && (
+        <div style={{color: '#e8f4ff', fontSize: '14px', textAlign: 'center', margin: '10px 0'}}>
+          Demo: admin@campus.edu / admin123
+        </div>
+      )}
+      
+      <button onClick={handleLogin}>Login as {loginAs}</button>
+      <div className="link" onClick={() => setPage("register")}>New user? Register here</div>
     </div>
   );
 }
@@ -69,18 +124,31 @@ function Register({ register, setPage }) {
   }
 
   return (
-    <div className="glass-box">
-      <div className="title">Smart Campus Management</div>
-      <div className="subtitle">Student Registration</div>
-      <input placeholder="Name" value={name} onChange={e => setName(e.target.value)} />
-      <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
+    <div className="login-box">
+      <div className="title">🎓 Register</div>
+      <div className="subtitle">Join Smart Campus</div>
+      
+      <input placeholder="Full Name" value={name} onChange={e => setName(e.target.value)} />
+      <input placeholder="Email Address" value={email} onChange={e => setEmail(e.target.value)} />
       <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
-      <select value={role} onChange={e => setRole(e.target.value)}>
-        <option value="student">Student</option>
-        <option value="admin">Admin</option>
-      </select>
-      <button onClick={handleRegister}>Register</button>
-      <div className="link" onClick={() => setPage("login")}>Already have account? Login</div>
+      
+      <div className="role-selector">
+        <div 
+          className={`role-option ${role === "student" ? "active" : ""}`}
+          onClick={() => setRole("student")}
+        >
+          👨‍🎓 Student
+        </div>
+        <div 
+          className={`role-option ${role === "admin" ? "active" : ""}`}
+          onClick={() => setRole("admin")}
+        >
+          👨‍💼 Admin
+        </div>
+      </div>
+      
+      <button onClick={handleRegister}>Create Account</button>
+      <div className="link" onClick={() => setPage("login")}>Already have account? Login here</div>
     </div>
   );
 }
